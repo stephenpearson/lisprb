@@ -1,0 +1,87 @@
+(progn
+  (defun reverse (v result)
+    (if (not (empty (cdr v)))
+      (reverse (cdr v) (cons (car v) result))
+      (return (cons (car v) result))))
+
+  (defun range (start end)
+    (if (lt start end)
+      (cons start (range (plus start 1) end))
+      (cons start nil)))
+
+  (defun for (var vals body)
+    (local var (car vals))
+    (eval body)
+    (if (not (empty (cdr vals))) (for var (cdr vals) body)))
+
+  (defun hanoi (pegs depth src dst aux)
+    (if (gt depth 0)
+      (progn
+        (set (quote pegs) (hanoi pegs (minus depth 1) src aux dst))
+        (set (quote pegs) (movepeg pegs src dst))
+        (printpegs pegs)
+        (set (quote pegs) (hanoi pegs (minus depth 1) aux dst src))
+        (return pegs)))
+    (return pegs))
+
+  (defun length (l)
+    (if (empty l)
+      (return 0)
+      (plus (length (cdr l)) 1)))
+
+  (defun diskcount (pegs)
+    (if (empty pegs)
+      (return 0)
+      (plus (diskcount (cdr pegs)) (length (car pegs)))))
+
+  (defun getpeg (pegs pos)
+    (if (gt pos 1)
+      (getpeg (cdr pegs) (minus pos 1))
+      (car pegs)))
+
+  (defun setpeg (pegs pos val)
+    (if (gt pos 1)
+      (cons (car pegs) (setpeg (cdr pegs) (minus pos 1) val))
+      (cons val (cdr pegs))))
+
+  (defun movepeg (pegs from to)
+    (set (quote fpegs) (getpeg pegs from))
+    (print "Move disk ") (print (car fpegs)) (print " from ")
+    (print from) (print " to ") (println to)
+    (set (quote tpegs) (cons (car fpegs) (getpeg pegs to)))
+    (set (quote fpegs) (cdr fpegs))
+    (set (quote pegs) (setpeg (setpeg pegs from fpegs) to tpegs))
+    (return pegs))
+
+  (defun getnth (var n)
+    (if (gt n 0)
+      (getnth (cdr var) (minus n 1))
+      (car var)))
+
+  (defun printcol (pegs row col)
+    (set (quote c) (getnth pegs col))
+    (if (gt (length c) row)
+      (print (getnth (reverse c (quote ())) row))
+      (print "|"))
+    (print "    "))
+
+  (defun printrow (pegs row)
+    (print "   ")
+    (for (quote col) (quote (0 1 2))
+      (quote (progn
+        (printcol pegs row col))))
+        (println ""))
+
+  (defun printpegs (pegs)
+    (println "")
+    (set (quote rows) (diskcount pegs))
+    (for (quote i) (range 0 (minus rows 1))
+      (quote (printrow pegs (minus (minus rows i) 1))))
+    (println "  -+-  -+-  -+-")
+    (println "   1    2    3")
+    (println ""))
+
+  (set (quote pegs) (quote ((A B C) () ())))
+  (printpegs pegs)
+  (hanoi pegs (length (car pegs)) (quote 1) (quote 2) (quote 3))
+)
